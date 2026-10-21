@@ -1,0 +1,192 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deteksi Jumlah Jari AI</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background: #f1f5f9;
+            margin: 0;
+            padding: 30px 15px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #1e293b;
+        }
+
+        button {
+            padding: 12px 25px;
+            margin: 10px;
+            border: none;
+            border-radius: 8px;
+            background: #2563eb;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        #webcam-container {
+            margin-top: 20px;
+        }
+
+        #webcam-container canvas {
+            max-width: 100%;
+            border-radius: 10px;
+        }
+
+        #result {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2563eb;
+            margin-top: 20px;
+        }
+
+        #status {
+            color: #64748b;
+        }
+
+        #label-container {
+            margin-top: 15px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Deteksi Jumlah Jari AI</h1>
+        <p>Arahkan tangan ke kamera untuk mendeteksi 3 atau 5 jari.</p>
+
+        <button onclick="init()">Mulai Kamera</button>
+        <button onclick="stopCamera()">Matikan Kamera</button>
+
+        <p id="status">Model AI belum dimuat.</p>
+
+        <div id="webcam-container"></div>
+
+        <div id="result">Hasil: Belum terdeteksi</div>
+
+        <div id="label-container"></div>
+    </div>
+
+    <script>
+        const URL = "./model.ai/";
+
+        let model;
+        let webcam;
+        let running = false;
+        let starting = false;
+
+        async function init() {
+            if (starting || running) return;
+
+            starting = true;
+            document.getElementById("status").textContent =
+                "Memuat model AI...";
+
+            try {
+                model = await tmImage.load(
+                    URL + "model.json",
+                    URL + "metadata.json"
+                );
+
+                webcam = new tmImage.Webcam(300, 300, true);
+
+                await webcam.setup();
+                await webcam.play();
+
+                document.getElementById("webcam-container").replaceChildren(
+                    webcam.canvas
+                );
+
+                running = true;
+                document.getElementById("status").textContent =
+                    "Kamera aktif. Arahkan tangan ke kamera.";
+
+                window.requestAnimationFrame(loop);
+
+            } catch (error) {
+                console.error(error);
+
+                document.getElementById("status").textContent =
+                    "Gagal memuat model atau kamera. Periksa Console.";
+
+                alert(
+                    "Terjadi kesalahan. Pastikan file model benar dan izin kamera aktif."
+                );
+
+                if (webcam) {
+                    webcam.stop();
+                    webcam = null;
+                }
+            } finally {
+                starting = false;
+            }
+        }
+
+        async function loop() {
+            if (!running || !webcam) return;
+
+            webcam.update();
+            await predict();
+
+            if (running) {
+                window.requestAnimationFrame(loop);
+            }
+        }
+
+        async function predict() {
+            const predictions = await model.predict(webcam.canvas);
+
+            predictions.sort(
+                (a, b) => b.probability - a.probability
+            );
+
+            const best = predictions[0];
+
+            document.getElementById("result").textContent =
+                "Hasil: " + best.className;
+
+            document.getElementById("label-container").innerHTML =
+                predictions.map(p =>
+                    `<p>${p.className}: ${(p.probability * 100).toFixed(1)}%</p>`
+                ).join("");
+        }
+
+        function stopCamera() {
+            running = false;
+
+            if (webcam) {
+                webcam.stop();
+                webcam = null;
+            }
+
+            document.getElementById("webcam-container").innerHTML = "";
+            document.getElementById("result").textContent =
+                "Hasil: Belum terdeteksi";
+            document.getElementById("status").textContent =
+                "Kamera dimatikan.";
+        }
+    </script>
+</body>
+</html>
