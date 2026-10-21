@@ -1,11 +1,17 @@
 # Website Deteksi Jari Berbasis AI
 
-## Deskripsi Proyek
+## Deskripsi Tugas
 
 Proyek ini merupakan aplikasi web berbasis Artificial Intelligence (AI) yang dikembangkan untuk mendeteksi dan mengenali gestur jari menggunakan model machine learning dari Google Teachable Machine.
 
 Website ini dibuat menggunakan HTML dan TensorFlow.js untuk mengintegrasikan model AI agar dapat digunakan melalui browser.
 
+-----
+## Pengembang
+**Fatihah Maulana**
+**F1G125031**
+
+----
 ## Teknologi yang Digunakan
 
 - **HTML** — membangun struktur halaman website.
@@ -39,6 +45,6 @@ Proyek ini bertujuan menerapkan teknologi machine learning dalam aplikasi web se
 
 ## Pengembang
 
-**Fatih366**
+**Fatihah Maulana**
 
 Proyek pembelajaran Artificial Intelligence dan pengembangan web.
